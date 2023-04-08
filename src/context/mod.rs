@@ -60,29 +60,45 @@ where
 
     pub fn get_chance_drop(&mut self) -> EsdtTokenPayment<C::Api> {
         self.remaining_chance_drops -= 1;
+        let set_len = Self::get_full_set_len(&self.remaining_chance_set);
         Self::get_drop_item_from_set(
             &mut self.randomness_source, 
-            &mut self.remaining_chance_set
+            &mut self.remaining_chance_set,
+            set_len
         )
     }
 
     pub fn get_guaranteed_drop_from_set(&mut self) -> EsdtTokenPayment<C::Api> {
         self.remaining_guaranteed_drops -= 1;
+        let set_len = Self::get_full_set_len(&self.remaining_guaranteed_set);
         Self::get_drop_item_from_set(
             &mut self.randomness_source, 
-            &mut self.remaining_guaranteed_set
+            &mut self.remaining_guaranteed_set,
+            set_len
         )
     }
 
     fn get_drop_item_from_set(
         randomness_source: &mut RandomnessSource<C::Api>, 
-        drop_set: &mut ManagedVec::<C::Api, DropItem<C::Api>>
+        drop_set: &mut ManagedVec::<C::Api, DropItem<C::Api>>,
+        max_len: usize
     ) -> EsdtTokenPayment<C::Api> {
-        let random_drop_idx = randomness_source.next_usize_in_range(0, drop_set.len());
-        let mut set_drop_item = drop_set.get(random_drop_idx);
+        let random_drop_pos_idx = randomness_source.next_usize_in_range(0, max_len);
+        let mut crt_idx_count = 0;
+        let mut random_drop_type = 0;
+        for item in drop_set.iter() {
+            crt_idx_count += item.amount_left;
+            if crt_idx_count >= random_drop_pos_idx {
+                break;
+            }
+            random_drop_type += 1;
+        }
+
+
+        let mut set_drop_item = drop_set.get(random_drop_type);
         let drop_content = set_drop_item.drop_content.clone();
 
-        drop_set.remove(random_drop_idx);
+        drop_set.remove(random_drop_type);
 
         set_drop_item.amount_left -= 1;
         if set_drop_item.amount_left > 0 {
@@ -90,6 +106,14 @@ where
         }
         
         drop_content
+    }
+
+    fn get_full_set_len(set: &ManagedVec::<C::Api, DropItem<C::Api>>) -> usize {
+        let mut size = 0;
+        for item in set.iter() {
+            size += item.amount_left;
+        }
+        return size;
     }
 
     pub fn get_guaranteed_drop_with_quantity(&mut self, quantity: BigUint<C::Api>) -> EsdtTokenPayment<C::Api> {
