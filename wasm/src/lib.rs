@@ -5,9 +5,9 @@
 ////////////////////////////////////////////////////
 
 // Init:                                 1
-// Endpoints:                           11
+// Endpoints:                           13
 // Async Callback (empty):               1
-// Total number of exported functions:  13
+// Total number of exported functions:  15
 
 #![no_std]
 #![feature(alloc_error_handler, lang_items)]
@@ -19,16 +19,18 @@ multiversx_sc_wasm_adapter::endpoints! {
     aoz_sc_land_chest_opening
     (
         openChests
-        setNoncesAndPools
-        setPoolsAndPrizes
         getEnabled
         getChestTokenId
-        getAllPrizePoolIds
-        getElibiglePoolIds
-        getPrizePool
-        getPoolQuantity
+        getRemainingChanceBasedItems
         enableSc
         disableSc
+        setGuaranteedItem
+        addGuaranteedSetItem
+        addChanceSetItem
+        clearGuaranteedItem
+        clearGuaranteedItemSet
+        clearChanceItemSet
+        deposit
     )
 }
 
