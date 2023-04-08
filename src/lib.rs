@@ -29,6 +29,16 @@ pub trait AozScLandChestOpening: storage::StorageModule + owner::OwnerModule {
                 );
             }
         }
+        for chest_nonce in &[1, 2, 3, 4u64] {
+            for item in self.chance_based_item_set(*chest_nonce).iter() {
+                let (drop, _) = item;
+                let sc_balance = self.blockchain().get_sc_balance(&EgldOrEsdtTokenIdentifier::esdt(drop.clone().token_identifier), drop.clone().token_nonce);
+                if sc_balance > 0 {
+                    continue;
+                }
+                self.chance_based_item_set(*chest_nonce).remove(&drop);
+            }
+        }
     }
 
     #[payable("*")]
